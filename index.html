@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <style>
-        :root { --neon: #1d9bf0; --bg: #000000; --card: #000000; --border: #2f3336; --heart: #f91880; }
+        :root { --neon: #1d9bf0; --bg: #000000; --card: #000000; --border: #2f3336; --heart: #f91880; --gray: #71767b; }
         body { background: var(--bg); color: white; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
         .container { max-width: 500px; margin: auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; }
 
@@ -34,19 +34,28 @@
         .avatar { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .post-content-area { flex: 1; }
         .post-user { color: white; font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
-        .post-time { color: #71767b; font-size: 0.8rem; font-weight: normal; }
+        .post-time { color: var(--gray); font-size: 0.8rem; font-weight: normal; }
         .text-body { margin: 5px 0 12px 0; line-height: 1.5; color: #e7e9ea; }
 
-        /* التفاعل (لايك) */
-        .post-actions { display: flex; gap: 20px; color: #71767b; font-size: 0.9rem; }
+        /* التفاعل (لايك وتعليق) */
+        .post-actions { display: flex; gap: 30px; color: var(--gray); font-size: 0.9rem; }
         .action-item { display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
-        .action-item:hover { color: var(--heart); }
-        .liked { color: var(--heart); }
-        .liked svg { fill: var(--heart); stroke: var(--heart); }
+        .action-item:hover { color: var(--neon); }
+        .action-item.liked { color: var(--heart); }
+        .action-item.liked svg { fill: var(--heart); stroke: var(--heart); }
+
+        /* قسم التعليقات */
+        .comments-box { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #16181c; }
+        .comment { font-size: 0.9rem; margin-bottom: 10px; border-bottom: 1px solid #16181c; padding-bottom: 5px; }
+        .comment-user { color: var(--neon); font-weight: bold; font-size: 0.85rem; }
+        .comment-text { color: #d6d9db; }
+        .comment-input-group { display: flex; gap: 10px; margin-top: 10px; }
+        .comment-input-group input { padding: 8px; font-size: 0.9rem; border-radius: 20px; margin-bottom: 0; }
+        .comment-input-group button { width: auto; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; }
 
         /* الشريط السفلي */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: black; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 1000; }
-        .nav-item { color: #71767b; cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; max-width: 502px; background: black; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 1000; }
+        .nav-item { color: var(--gray); cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
         .nav-item.active-nav { color: white; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -85,7 +94,7 @@
             <div style="text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--border);">
                 <div style="font-size: 4rem; background: #222; width: 100px; height: 100px; border-radius: 50%; margin: auto; display: flex; align-items: center; justify-content: center;">👤</div>
                 <h2 id="profile-name" style="margin: 15px 0 5px 0;">---</h2>
-                <div id="profile-id" style="color: #71767b; font-size: 0.9rem;">ID: ---</div>
+                <div id="profile-id" style="color: var(--gray); font-size: 0.9rem;">ID: ---</div>
                 <button onclick="logout()" style="background: none; border: 1px solid #f44; color: #f44; margin-top: 15px; padding: 5px 20px; border-radius: 20px; cursor: pointer;">خروج</button>
             </div>
             <div id="my-posts"></div>
@@ -166,7 +175,8 @@
                 content: text,
                 username: userData.username,
                 userId: user.uid,
-                likes: [], // مصفوفة اللايكات في البداية فارغة
+                likes: [],
+                comments: [], // مصفوفة التعليقات
                 time: firebase.firestore.FieldValue.serverTimestamp()
             });
             document.getElementById('post-text').value = "";
@@ -183,6 +193,31 @@
             } else {
                 await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(userId) });
             }
+        }
+
+        function toggleComments(postId) {
+            const box = document.getElementById(`comments-box-${postId}`);
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function addComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value;
+            if (!text.trim()) return;
+
+            const user = auth.currentUser;
+            const userData = (await db.collection("users").doc(user.uid).get()).data();
+
+            const commentObj = {
+                username: userData.username,
+                text: text,
+                time: Date.now()
+            };
+
+            await db.collection("posts").doc(postId).update({
+                comments: firebase.firestore.FieldValue.arrayUnion(commentObj)
+            });
+            input.value = "";
         }
 
         function loadAllPosts() {
@@ -204,7 +239,20 @@
         function renderPost(p, id) {
             const time = p.time ? new Date(p.time.seconds * 1000).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : "الآن";
             const likesCount = p.likes ? p.likes.length : 0;
+            const commentsCount = p.comments ? p.comments.length : 0;
             const isLiked = p.likes && p.likes.includes(auth.currentUser?.uid);
+
+            let commentsHtml = "";
+            if (p.comments) {
+                p.comments.forEach(c => {
+                    commentsHtml += `
+                        <div class="comment">
+                            <span class="comment-user">@${c.username}</span>: 
+                            <span class="comment-text">${c.text}</span>
+                        </div>
+                    `;
+                });
+            }
 
             return `
                 <div class="post">
@@ -217,6 +265,17 @@
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                                 <span>${likesCount}</span>
                             </div>
+                            <div class="action-item" onclick="toggleComments('${id}')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                <span>${commentsCount}</span>
+                            </div>
+                        </div>
+                        <div class="comments-box" id="comments-box-${id}">
+                            <div class="comments-list">${commentsHtml}</div>
+                            <div class="comment-input-group">
+                                <input type="text" id="comment-input-${id}" placeholder="اكتب رداً...">
+                                <button class="btn" onclick="addComment('${id}')">رد</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,3 +286,4 @@
     </script>
 </body>
 </html>
+
