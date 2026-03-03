@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calzy Social Pro | X Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <style>
+        :root { --neon: #1d9bf0; --bg: #000000; --card: #000000; --border: #2f3336; --heart: #f91880; }
+        body { background: var(--bg); color: white; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        .container { max-width: 500px; margin: auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; }
+
+        /* الهيدر */
+        .header { padding: 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; font-weight: 900; }
+
+        /* الشاشات */
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .active { display: block; }
+
+        /* المدخلات */
+        input, textarea { background: transparent; border: 1px solid var(--border); color: white; padding: 15px; border-radius: 8px; width: 100%; margin-bottom: 10px; outline: none; font-family: inherit; box-sizing: border-box; }
+        input:focus, textarea:focus { border-color: var(--neon); }
+        .btn { background: var(--neon); color: white; border: none; padding: 12px; border-radius: 30px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+
+        /* التغريدة */
+        .post { border-bottom: 1px solid var(--border); padding: 15px; display: flex; gap: 12px; transition: 0.2s; }
+        .post:hover { background: #080808; }
+        .avatar { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .post-content-area { flex: 1; }
+        .post-user { color: white; font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
+        .post-time { color: #71767b; font-size: 0.8rem; font-weight: normal; }
+        .text-body { margin: 5px 0 12px 0; line-height: 1.5; color: #e7e9ea; }
+
+        /* التفاعل (لايك) */
+        .post-actions { display: flex; gap: 20px; color: #71767b; font-size: 0.9rem; }
+        .action-item { display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
+        .action-item:hover { color: var(--heart); }
+        .liked { color: var(--heart); }
+        .liked svg { fill: var(--heart); stroke: var(--heart); }
+
+        /* الشريط السفلي */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: black; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 1000; }
+        .nav-item { color: #71767b; cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
+        .nav-item.active-nav { color: white; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen" class="screen active">
+        <div class="container" style="text-align: center; padding-top: 80px; border: none;">
+            <h1 style="color: white; font-size: 3rem;">𝕏</h1>
+            <div style="padding: 20px;">
+                <input type="text" id="reg-name" placeholder="اسم المستخدم">
+                <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="reg-pass" placeholder="كلمة السر">
+                <button class="btn" onclick="signUp()">سجل الآن 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="home-screen" class="screen">
+        <div class="container">
+            <div class="header">الرئيسية</div>
+            <div style="padding: 15px; border-bottom: 1px solid var(--border);">
+                <textarea id="post-text" placeholder="ماذا يحدث؟" rows="3" style="border:none; font-size: 1.2rem;"></textarea>
+                <div style="text-align: left;">
+                    <button class="btn" style="width: auto; padding: 8px 25px;" onclick="publish()">تغريد</button>
+                </div>
+            </div>
+            <div id="all-posts"></div>
+        </div>
+    </div>
+
+    <div id="profile-screen" class="screen">
+        <div class="container">
+            <div class="header">حسابي</div>
+            <div style="text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--border);">
+                <div style="font-size: 4rem; background: #222; width: 100px; height: 100px; border-radius: 50%; margin: auto; display: flex; align-items: center; justify-content: center;">👤</div>
+                <h2 id="profile-name" style="margin: 15px 0 5px 0;">---</h2>
+                <div id="profile-id" style="color: #71767b; font-size: 0.9rem;">ID: ---</div>
+                <button onclick="logout()" style="background: none; border: 1px solid #f44; color: #f44; margin-top: 15px; padding: 5px 20px; border-radius: 20px; cursor: pointer;">خروج</button>
+            </div>
+            <div id="my-posts"></div>
+        </div>
+    </div>
+
+    <nav class="nav-bar" id="main-nav" style="display: none;">
+        <div class="nav-item active-nav" id="nav-home" onclick="switchScreen('home')">🏠</div>
+        <div class="nav-item" id="nav-profile" onclick="switchScreen('profile')">👤</div>
+    </nav>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdr12SMa7X1p4q-8iXlicz1Em0-5HAq70",
+            authDomain: "calzy-social.firebaseapp.com",
+            projectId: "calzy-social",
+            storageBucket: "calzy-social.firebasestorage.app",
+            messagingSenderId: "856421004924",
+            appId: "1:856421004924:web:04d586932e179d5213bbf9"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('auth-screen').classList.remove('active');
+                document.getElementById('main-nav').style.display = 'flex';
+                switchScreen('home');
+                updateProfileInfo(user.uid);
+                loadAllPosts();
+                loadMyPosts(user.uid);
+            } else {
+                document.getElementById('auth-screen').classList.add('active');
+                document.getElementById('main-nav').style.display = 'none';
+            }
+        });
+
+        async function signUp() {
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const name = document.getElementById('reg-name').value;
+            try {
+                const res = await auth.createUserWithEmailAndPassword(email, pass);
+                await db.collection("users").doc(res.user.uid).set({
+                    username: name,
+                    uid: res.user.uid,
+                    shortId: res.user.uid.substring(0,6)
+                });
+            } catch(e) {
+                auth.signInWithEmailAndPassword(email, pass).catch(err => alert("تأكد من البيانات"));
+            }
+        }
+
+        async function updateProfileInfo(uid) {
+            const doc = await db.collection("users").doc(uid).get();
+            if (doc.exists) {
+                document.getElementById('profile-name').innerText = doc.data().username;
+                document.getElementById('profile-id').innerText = "@" + doc.data().shortId;
+            }
+        }
+
+        function switchScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            document.getElementById(screenName + '-screen').classList.add('active');
+            document.getElementById('nav-' + screenName).classList.add('active-nav');
+        }
+
+        async function publish() {
+            const text = document.getElementById('post-text').value;
+            if (!text.trim()) return;
+            const user = auth.currentUser;
+            const userData = (await db.collection("users").doc(user.uid).get()).data();
+
+            await db.collection("posts").add({
+                content: text,
+                username: userData.username,
+                userId: user.uid,
+                likes: [], // مصفوفة اللايكات في البداية فارغة
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('post-text').value = "";
+        }
+
+        async function toggleLike(postId) {
+            const userId = auth.currentUser.uid;
+            const postRef = db.collection("posts").doc(postId);
+            const doc = await postRef.get();
+            const likes = doc.data().likes || [];
+
+            if (likes.includes(userId)) {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(userId) });
+            } else {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(userId) });
+            }
+        }
+
+        function loadAllPosts() {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+                const container = document.getElementById('all-posts');
+                container.innerHTML = "";
+                snap.forEach(doc => container.innerHTML += renderPost(doc.data(), doc.id));
+            });
+        }
+
+        function loadMyPosts(uid) {
+            db.collection("posts").where("userId", "==", uid).onSnapshot(snap => {
+                const container = document.getElementById('my-posts');
+                container.innerHTML = "";
+                snap.forEach(doc => container.innerHTML += renderPost(doc.data(), doc.id));
+            });
+        }
+
+        function renderPost(p, id) {
+            const time = p.time ? new Date(p.time.seconds * 1000).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : "الآن";
+            const likesCount = p.likes ? p.likes.length : 0;
+            const isLiked = p.likes && p.likes.includes(auth.currentUser?.uid);
+
+            return `
+                <div class="post">
+                    <div class="avatar">👤</div>
+                    <div class="post-content-area">
+                        <div class="post-user">${p.username} <span class="post-time">${time}</span></div>
+                        <div class="text-body">${p.content}</div>
+                        <div class="post-actions">
+                            <div class="action-item ${isLiked ? 'liked' : ''}" onclick="toggleLike('${id}')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <span>${likesCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function logout() { auth.signOut().then(() => location.reload()); }
+    </script>
+</body>
+</html>
