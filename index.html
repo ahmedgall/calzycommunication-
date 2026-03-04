@@ -3,85 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calzy Social Pro | X Style</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    
+    <title>Calzy society </title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <style>
-        :root { --neon: #1d9bf0; --bg: #000000; --card: #000000; --border: #2f3336; --heart: #f91880; --gray: #71767b; }
-        body { background: var(--bg); color: white; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
-        .container { max-width: 500px; margin: auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; }
+        :root {
+            --accent: #7c4dff;
+            --accent-glow: rgba(124, 77, 255, 0.4);
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+        }
 
-        /* الهيدر */
-        .header { padding: 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; font-weight: 900; }
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1a1a2e, #050505);
+            color: var(--text-main);
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
 
-        /* الشاشات */
-        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            min-height: 100vh;
+            border-right: 1px solid var(--border);
+            border-left: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.7);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        /* Post Box */
+        .post-input-box {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        textarea {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            width: 100%;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--accent-glow);
+        }
+
+        /* Post Design */
+        .post {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .u-info { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        
+        .avatar-circle {
+            width: 45px; height: 45px;
+            border-radius: 14px;
+            background: linear-gradient(45deg, var(--accent), #448aff);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .u-name { font-weight: 700; font-size: 1rem; cursor: pointer; color: var(--text-main); }
+        .p-text { color: var(--text-dim); line-height: 1.6; white-space: pre-wrap; margin-bottom: 15px; }
+
+        /* Actions */
+        .actions { display: flex; gap: 25px; }
+        .act-item {
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer; color: var(--text-dim); transition: 0.3s;
+        }
+        .act-item:hover { color: var(--accent); }
+        .act-item.liked { color: #ff4081; }
+        .act-item svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+        .liked svg { fill: #ff4081; }
+
+        /* Comments Vexa Style */
+        .comm-box {
+            margin-top: 15px; padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px; display: none;
+            border: 1px solid var(--border);
+        }
+        .c-item { margin-bottom: 10px; font-size: 0.9rem; }
+        .c-name { color: var(--accent); font-weight: 600; margin-left: 5px; }
+        
+        /* Navigation */
+        .nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 502px;
+            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; padding: 15px 0;
+            border-top: 1px solid var(--border); z-index: 1000;
+        }
+        .nav-item { color: var(--text-dim); cursor: pointer; transition: 0.3s; }
+        .nav-item svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
+        .active-nav { color: var(--accent); filter: drop-shadow(0 0 5px var(--accent)); }
+
+        /* Screens */
+        .screen { display: none; }
         .active { display: block; }
 
-        /* المدخلات */
-        input, textarea { background: transparent; border: 1px solid var(--border); color: white; padding: 15px; border-radius: 8px; width: 100%; margin-bottom: 10px; outline: none; font-family: inherit; box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: var(--neon); }
-        .btn { background: var(--neon); color: white; border: none; padding: 12px; border-radius: 30px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; }
-
-        /* التغريدة */
-        .post { border-bottom: 1px solid var(--border); padding: 15px; display: flex; gap: 12px; transition: 0.2s; }
-        .post:hover { background: #080808; }
-        .avatar { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .post-content-area { flex: 1; }
-        .post-user { color: white; font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
-        .post-time { color: var(--gray); font-size: 0.8rem; font-weight: normal; }
-        .text-body { margin: 5px 0 12px 0; line-height: 1.5; color: #e7e9ea; }
-
-        /* التفاعل (لايك وتعليق) */
-        .post-actions { display: flex; gap: 30px; color: var(--gray); font-size: 0.9rem; }
-        .action-item { display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
-        .action-item:hover { color: var(--neon); }
-        .action-item.liked { color: var(--heart); }
-        .action-item.liked svg { fill: var(--heart); stroke: var(--heart); }
-
-        /* قسم التعليقات */
-        .comments-box { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #16181c; }
-        .comment { font-size: 0.9rem; margin-bottom: 10px; border-bottom: 1px solid #16181c; padding-bottom: 5px; }
-        .comment-user { color: var(--neon); font-weight: bold; font-size: 0.85rem; }
-        .comment-text { color: #d6d9db; }
-        .comment-input-group { display: flex; gap: 10px; margin-top: 10px; }
-        .comment-input-group input { padding: 8px; font-size: 0.9rem; border-radius: 20px; margin-bottom: 0; }
-        .comment-input-group button { width: auto; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; }
-
-        /* الشريط السفلي */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; max-width: 502px; background: black; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 1000; }
-        .nav-item { color: var(--gray); cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
-        .nav-item.active-nav { color: white; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Auth */
+        .auth-card {
+            padding: 40px 20px; text-align: center;
+        }
+        .auth-card h1 { font-size: 3rem; margin-bottom: 30px; background: linear-gradient(to bottom, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        input {
+            background: var(--glass); border: 1px solid var(--border);
+            color: white; padding: 15px; border-radius: 12px;
+            width: 100%; margin-bottom: 15px; box-sizing: border-box; outline: none;
+        }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="screen active">
-        <div class="container" style="text-align: center; padding-top: 80px; border: none;">
-            <h1 style="color: white; font-size: 3rem;">𝕏</h1>
-            <div style="padding: 20px;">
-                <input type="text" id="reg-name" placeholder="اسم المستخدم">
-                <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
-                <input type="password" id="reg-pass" placeholder="كلمة السر">
-                <button class="btn" onclick="signUp()">سجل الآن 🚀</button>
-            </div>
+        <div class="container auth-card">
+            <h1>calzy</h1>
+            <input type="text" id="reg-name" placeholder="الاسم المستعار">
+            <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="reg-pass" placeholder="كلمة المرور">
+            <button class="btn" style="width:100%; justify-content: center;" onclick="signUp()">انضم الآن</button>
         </div>
     </div>
 
     <div id="home-screen" class="screen">
         <div class="container">
-            <div class="header">الرئيسية</div>
-            <div style="padding: 15px; border-bottom: 1px solid var(--border);">
-                <textarea id="post-text" placeholder="ماذا يحدث؟" rows="3" style="border:none; font-size: 1.2rem;"></textarea>
-                <div style="text-align: left;">
-                    <button class="btn" style="width: auto; padding: 8px 25px;" onclick="publish()">تغريد</button>
+            <div class="header"> Calzy society </div>
+            <div class="post-input-box">
+                <textarea id="post-text" placeholder="عاوز تسال خواتك عن اي او تفيدهم بي اي ؟ " rows="3"></textarea>
+                <div style="text-align: left; margin-top: 10px;">
+                    <button class="btn" onclick="publish()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        نشر
+                    </button>
                 </div>
             </div>
             <div id="all-posts"></div>
@@ -90,23 +201,41 @@
 
     <div id="profile-screen" class="screen">
         <div class="container">
-            <div class="header">حسابي</div>
-            <div style="text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--border);">
-                <div style="font-size: 4rem; background: #222; width: 100px; height: 100px; border-radius: 50%; margin: auto; display: flex; align-items: center; justify-content: center;">👤</div>
-                <h2 id="profile-name" style="margin: 15px 0 5px 0;">---</h2>
-                <div id="profile-id" style="color: var(--gray); font-size: 0.9rem;">ID: ---</div>
-                <button onclick="logout()" style="background: none; border: 1px solid #f44; color: #f44; margin-top: 15px; padding: 5px 20px; border-radius: 20px; cursor: pointer;">خروج</button>
+            <div class="header" style="display:flex; align-items:center; justify-content: space-between; padding: 15px 20px;">
+                <div onclick="switchScreen('home')" style="cursor:pointer">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </div>
+                <span id="p-title">الملف الشخصي</span>
+                <div style="width:24px"></div>
             </div>
-            <div id="my-posts"></div>
+            <div style="text-align:center; padding:30px 20px; border-bottom: 1px solid var(--border)">
+                <div class="avatar-circle" style="width:80px; height:80px; margin:auto; font-size:1.5rem">👤</div>
+                <h2 id="p-username" style="margin:15px 0 5px">---</h2>
+                <p id="p-bio" style="color:var(--text-dim); white-space:pre-wrap; font-size:0.9rem">بايو بالإيموجي 🎈</p>
+                
+                <div id="my-edit" style="display:none; margin-top:20px">
+                    <textarea id="bio-input" placeholder="اكتب شيئاً عنك... 🖋️" style="margin-bottom:10px"></textarea>
+                    <div style="display:flex; gap:10px; justify-content: center;">
+                        <button class="btn" onclick="saveBio()">حفظ</button>
+                        <button class="btn" style="background:rgba(255,0,0,0.2); color:#ff4444;" onclick="logout()">خروج</button>
+                    </div>
+                </div>
+            </div>
+            <div id="profile-posts"></div>
         </div>
     </div>
 
-    <nav class="nav-bar" id="main-nav" style="display: none;">
-        <div class="nav-item active-nav" id="nav-home" onclick="switchScreen('home')">🏠</div>
-        <div class="nav-item" id="nav-profile" onclick="switchScreen('profile')">👤</div>
+    <nav class="nav" id="main-nav" style="display:none">
+        <div class="nav-item active-nav" id="nav-home" onclick="switchScreen('home')">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="viewProfile()">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
     </nav>
 
     <script>
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAdr12SMa7X1p4q-8iXlicz1Em0-5HAq70",
             authDomain: "calzy-social.firebaseapp.com",
@@ -115,175 +244,123 @@
             messagingSenderId: "856421004924",
             appId: "1:856421004924:web:04d586932e179d5213bbf9"
         };
-
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const auth = firebase.auth(), db = firebase.firestore();
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('auth-screen').classList.remove('active');
                 document.getElementById('main-nav').style.display = 'flex';
                 switchScreen('home');
-                updateProfileInfo(user.uid);
                 loadAllPosts();
-                loadMyPosts(user.uid);
-            } else {
-                document.getElementById('auth-screen').classList.add('active');
-                document.getElementById('main-nav').style.display = 'none';
             }
         });
 
-        async function signUp() {
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-            const name = document.getElementById('reg-name').value;
-            try {
-                const res = await auth.createUserWithEmailAndPassword(email, pass);
-                await db.collection("users").doc(res.user.uid).set({
-                    username: name,
-                    uid: res.user.uid,
-                    shortId: res.user.uid.substring(0,6)
-                });
-            } catch(e) {
-                auth.signInWithEmailAndPassword(email, pass).catch(err => alert("تأكد من البيانات"));
-            }
+        function getPostTemplate(p, id) {
+            const isLiked = p.likes?.includes(auth.currentUser?.uid);
+            return `
+                <div class="post">
+                    <div class="u-info">
+                        <div class="avatar-circle">👤</div>
+                        <span class="u-name" onclick="viewProfile('${p.userId}')">${p.username}</span>
+                    </div>
+                    <div class="p-text">${p.content}</div>
+                    <div class="actions">
+                        <div class="act-item ${isLiked?'liked':''}" onclick="toggleLike('${id}')">
+                            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <span>${p.likes?.length || 0}</span>
+                        </div>
+                        <div class="act-item" onclick="smartToggle(this)">
+                            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                            <span>${p.comments?.length || 0}</span>
+                        </div>
+                    </div>
+                    <div class="comm-box">
+                        <div class="c-list">${p.comments?.map(c => `<div class="c-item"><span class="c-name">@${c.user}:</span> ${c.txt}</div>`).join('') || ''}</div>
+                        <div style="display:flex; gap:10px; margin-top:12px">
+                            <input type="text" class="ci" placeholder="رد نيون... ✨" style="margin:0; padding:10px">
+                            <button class="btn" style="padding:5px 15px" onclick="addComment(this, '${id}')">رد</button>
+                        </div>
+                    </div>
+                </div>`;
         }
 
-        async function updateProfileInfo(uid) {
-            const doc = await db.collection("users").doc(uid).get();
-            if (doc.exists) {
-                document.getElementById('profile-name').innerText = doc.data().username;
-                document.getElementById('profile-id').innerText = "@" + doc.data().shortId;
-            }
+        function smartToggle(btn) {
+            const post = btn.closest('.post');
+            const box = post.querySelector('.comm-box');
+            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
         }
 
-        function switchScreen(screenName) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(screenName + '-screen').classList.add('active');
-            document.getElementById('nav-' + screenName).classList.add('active-nav');
-        }
+        async function viewProfile(uid = auth.currentUser.uid) {
+            switchScreen('profile');
+            const isMe = (uid === auth.currentUser.uid);
+            document.getElementById('my-edit').style.display = isMe ? 'block' : 'none';
+            const u = await db.collection("users").doc(uid).get();
+            document.getElementById('p-username').innerText = u.data().username;
+            document.getElementById('p-bio').innerText = u.data().bio || "بايو فارغ ✨";
 
-        async function publish() {
-            const text = document.getElementById('post-text').value;
-            if (!text.trim()) return;
-            const user = auth.currentUser;
-            const userData = (await db.collection("users").doc(user.uid).get()).data();
-
-            await db.collection("posts").add({
-                content: text,
-                username: userData.username,
-                userId: user.uid,
-                likes: [],
-                comments: [], // مصفوفة التعليقات
-                time: firebase.firestore.FieldValue.serverTimestamp()
+            db.collection("posts").where("userId", "==", uid).onSnapshot(snap => {
+                const div = document.getElementById('profile-posts'); div.innerHTML = "";
+                snap.forEach(doc => div.innerHTML += getPostTemplate(doc.data(), doc.id));
             });
-            document.getElementById('post-text').value = "";
         }
 
-        async function toggleLike(postId) {
-            const userId = auth.currentUser.uid;
-            const postRef = db.collection("posts").doc(postId);
-            const doc = await postRef.get();
-            const likes = doc.data().likes || [];
-
-            if (likes.includes(userId)) {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(userId) });
+        async function toggleLike(pid) {
+            const ref = db.collection("posts").doc(pid);
+            const snap = await ref.get();
+            if (snap.data().likes.includes(auth.currentUser.uid)) {
+                await ref.update({ likes: firebase.firestore.FieldValue.arrayRemove(auth.currentUser.uid) });
             } else {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(userId) });
+                await ref.update({ likes: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid) });
             }
         }
 
-        function toggleComments(postId) {
-            const box = document.getElementById(`comments-box-${postId}`);
-            box.style.display = box.style.display === 'block' ? 'none' : 'block';
-        }
-
-        async function addComment(postId) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const text = input.value;
-            if (!text.trim()) return;
-
-            const user = auth.currentUser;
-            const userData = (await db.collection("users").doc(user.uid).get()).data();
-
-            const commentObj = {
-                username: userData.username,
-                text: text,
-                time: Date.now()
-            };
-
-            await db.collection("posts").doc(postId).update({
-                comments: firebase.firestore.FieldValue.arrayUnion(commentObj)
+        async function addComment(btn, pid) {
+            const input = btn.parentElement.querySelector('.ci');
+            if(!input.value.trim()) return;
+            const me = (await db.collection("users").doc(auth.currentUser.uid).get()).data().username;
+            await db.collection("posts").doc(pid).update({
+                comments: firebase.firestore.FieldValue.arrayUnion({ user: me, txt: input.value })
             });
             input.value = "";
         }
 
+        async function saveBio() {
+            const b = document.getElementById('bio-input').value;
+            await db.collection("users").doc(auth.currentUser.uid).update({ bio: b });
+            document.getElementById('p-bio').innerText = b;
+        }
+
+        async function publish() {
+            const t = document.getElementById('post-text').value; if(!t.trim()) return;
+            const u = (await db.collection("users").doc(auth.currentUser.uid).get()).data();
+            await db.collection("posts").add({ content: t, userId: auth.currentUser.uid, username: u.username, likes: [], comments: [], time: Date.now() });
+            document.getElementById('post-text').value = "";
+        }
+
         function loadAllPosts() {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
-                const container = document.getElementById('all-posts');
-                container.innerHTML = "";
-                snap.forEach(doc => container.innerHTML += renderPost(doc.data(), doc.id));
+                const d = document.getElementById('all-posts'); d.innerHTML = "";
+                snap.forEach(doc => d.innerHTML += getPostTemplate(doc.data(), doc.id));
             });
         }
 
-        function loadMyPosts(uid) {
-            db.collection("posts").where("userId", "==", uid).onSnapshot(snap => {
-                const container = document.getElementById('my-posts');
-                container.innerHTML = "";
-                snap.forEach(doc => container.innerHTML += renderPost(doc.data(), doc.id));
-            });
+        function switchScreen(s) {
+            document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active-nav'));
+            document.getElementById(s + '-screen').classList.add('active');
+            if(s==='home' || s==='profile') document.getElementById('nav-'+s).classList.add('active-nav');
         }
 
-        function renderPost(p, id) {
-            const time = p.time ? new Date(p.time.seconds * 1000).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : "الآن";
-            const likesCount = p.likes ? p.likes.length : 0;
-            const commentsCount = p.comments ? p.comments.length : 0;
-            const isLiked = p.likes && p.likes.includes(auth.currentUser?.uid);
-
-            let commentsHtml = "";
-            if (p.comments) {
-                p.comments.forEach(c => {
-                    commentsHtml += `
-                        <div class="comment">
-                            <span class="comment-user">@${c.username}</span>: 
-                            <span class="comment-text">${c.text}</span>
-                        </div>
-                    `;
-                });
-            }
-
-            return `
-                <div class="post">
-                    <div class="avatar">👤</div>
-                    <div class="post-content-area">
-                        <div class="post-user">${p.username} <span class="post-time">${time}</span></div>
-                        <div class="text-body">${p.content}</div>
-                        <div class="post-actions">
-                            <div class="action-item ${isLiked ? 'liked' : ''}" onclick="toggleLike('${id}')">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                <span>${likesCount}</span>
-                            </div>
-                            <div class="action-item" onclick="toggleComments('${id}')">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                                <span>${commentsCount}</span>
-                            </div>
-                        </div>
-                        <div class="comments-box" id="comments-box-${id}">
-                            <div class="comments-list">${commentsHtml}</div>
-                            <div class="comment-input-group">
-                                <input type="text" id="comment-input-${id}" placeholder="اكتب رداً...">
-                                <button class="btn" onclick="addComment('${id}')">رد</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+        async function signUp() {
+            const e = document.getElementById('reg-email').value, p = document.getElementById('reg-pass').value, n = document.getElementById('reg-name').value;
+            if(!e || !p || !n) return;
+            try {
+                const r = await auth.createUserWithEmailAndPassword(e, p);
+                await db.collection("users").doc(r.user.uid).set({ username: n, bio: "" });
+            } catch { auth.signInWithEmailAndPassword(e, p); }
         }
-
         function logout() { auth.signOut().then(() => location.reload()); }
     </script>
 </body>
 </html>
-
